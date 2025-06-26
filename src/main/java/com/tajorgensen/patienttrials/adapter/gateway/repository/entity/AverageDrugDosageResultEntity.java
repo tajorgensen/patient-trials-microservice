@@ -9,10 +9,8 @@ import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
-import jakarta.persistence.NamedStoredProcedureQuery;
-import jakarta.persistence.ParameterMode;
+import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.SqlResultSetMapping;
-import jakarta.persistence.StoredProcedureParameter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,23 +27,20 @@ import java.math.RoundingMode;
         classes = @ConstructorResult(
                 targetClass = AverageDrugDosageResultEntity.class,
                 columns = {
-                        @ColumnResult(name = Database.StoredProcedure.ResultColumn.TRIAL_ID, type = Integer.class),
-                        @ColumnResult(name = Database.StoredProcedure.ResultColumn.TRIAL_NAME, type = String.class),
-                        @ColumnResult(name = Database.StoredProcedure.ResultColumn.DRUG_ID, type = Integer.class),
-                        @ColumnResult(name = Database.StoredProcedure.ResultColumn.DRUG_NAME, type = String.class),
-                        @ColumnResult(name = Database.StoredProcedure.ResultColumn.DOSAGE_MEASUREMENT_TYPE, type = String.class),
-                        @ColumnResult(name = Database.StoredProcedure.ResultColumn.AVERAGE_DOSAGE, type = BigDecimal.class),
-                        @ColumnResult(name = Database.StoredProcedure.ResultColumn.PATIENT_COUNT, type = Integer.class)
+                        @ColumnResult(name = "trial_id", type = Integer.class),
+                        @ColumnResult(name = "trial_name", type = String.class),
+                        @ColumnResult(name = "drug_id", type = Integer.class),
+                        @ColumnResult(name = "drug_name", type = String.class),
+                        @ColumnResult(name = "dosage_measurement_type", type = String.class),
+                        @ColumnResult(name = "average_dosage", type = BigDecimal.class),
+                        @ColumnResult(name = "patient_count", type = Long.class)
                 }
         )
 )
-@NamedStoredProcedureQuery(
-        name = Database.StoredProcedure.Name.CALCULATE_AVERAGE_DOSAGE,
-        procedureName = Database.StoredProcedure.Name.CALCULATE_AVERAGE_DOSAGE,
-        resultClasses = AverageDrugDosageResultEntity.class,
-        parameters = {
-                @StoredProcedureParameter(mode = ParameterMode.IN, name = Database.StoredProcedure.Parameters.TRIAL_ID, type = Integer.class)
-        }
+@NamedNativeQuery(
+        name = "AverageDrugDosageResultEntity.calculateAverageDosage",
+        query = "SELECT * FROM dbo.CalculateAverageDosage(:trialId)",
+        resultSetMapping = "AverageDosageMapping"
 )
 @Data
 @Builder
@@ -54,28 +49,28 @@ import java.math.RoundingMode;
 public class AverageDrugDosageResultEntity {
 
     @Id
-    @Column(name = Database.StoredProcedure.ResultColumn.TRIAL_ID)
+    @Column(name = "trial_id")
     private Integer trialId;
 
-    @Column(name = Database.StoredProcedure.ResultColumn.TRIAL_NAME)
+    @Column(name = "trial_name")
     private String trialName;
 
     @Id
-    @Column(name = Database.StoredProcedure.ResultColumn.DRUG_ID)
+    @Column(name = "drug_id")
     private Integer drugId;
 
-    @Column(name = Database.StoredProcedure.ResultColumn.DRUG_NAME)
+    @Column(name = "drug_name")
     private String drugName;
 
     @Id
-    @Column(name = Database.StoredProcedure.ResultColumn.DOSAGE_MEASUREMENT_TYPE)
+    @Column(name = "dosage_measurement_type")
     private String dosageMeasurementType;
 
-    @Column(name = Database.StoredProcedure.ResultColumn.AVERAGE_DOSAGE)
+    @Column(name = "average_dosage")
     private BigDecimal averageDosage;
 
-    @Column(name = Database.StoredProcedure.ResultColumn.PATIENT_COUNT)
-    private Integer patientCount;
+    @Column(name = "patient_count")
+    private Long patientCount;
 
     @NoArgsConstructor
     @AllArgsConstructor
@@ -93,7 +88,7 @@ public class AverageDrugDosageResultEntity {
                 .trialName(this.trialName)
                 .averageDosage(this.averageDosage != null ? this.averageDosage.setScale(2, RoundingMode.HALF_UP) : null)
                 .dosageMeasurementType(ApplicationConstants.UnitsOfMeasurement.valueOf(this.dosageMeasurementType))
-                .patientCount(this.patientCount)
+                .patientCount(this.patientCount != null ? this.patientCount.intValue() : null)
                 .build();
     }
 }
