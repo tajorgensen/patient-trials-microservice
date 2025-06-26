@@ -105,6 +105,7 @@ spring:
 
 ---
 # Production environment profile (for Vercel deployment)
+# Production environment profile (for Vercel deployment)
 spring:
   config:
     activate:
@@ -128,3 +129,6 @@ spring:
       ddl-auto: validate
     show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: ${PORT:8080}

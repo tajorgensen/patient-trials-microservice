@@ -2,17 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "pom.xml",
-      "use": "@vercel/java"
+      "src": "Dockerfile",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/.*",
+      "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "env": {
-    "SPRING_PROFILES_ACTIVE": "prod"
-  }
+  ]
 }
