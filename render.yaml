@@ -1,0 +1,38 @@
+
+services:
+  # Main Spring Boot Application
+  - type: web
+    name: patient-trials-api
+    runtime: docker
+    plan: starter  # or standard/pro based on your needs
+
+    # Build configuration
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+
+    # Environment variables
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: patient-trials-db
+          property: connectionString
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx512m -XX:+UseContainerSupport"
+      - key: PORT
+        value: "8080"
+
+    # Health check endpoint
+    healthCheckPath: /actuator/health
+
+    # Auto-deploy from main branch
+    autoDeploy: true
+    branch: main
+
+    # Scaling configuration
+    numInstances: 1
+
+    # Custom start command (optional, Dockerfile CMD will be used by default)
+    # startCommand: "java -Dserver.port=$PORT -jar app.jar"

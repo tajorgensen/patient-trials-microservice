@@ -1,80 +1,28 @@
+# Default configuration
 spring:
   application:
-    name: patient-trials
+    name: patient-trials-microservice
+  
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
-  jpa:
-    hibernate:
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show-sql: false
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-    date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: UTC
-
-  flyway:
-    enabled: true
-    create-schemas: true
-    schemas: flyway_history_schema, dbo
-    locations: classpath:db/migration/postgresql
-    baseline-on-migrate: true
-
-# Server configuration
 server:
-  port: 8080
+  port: ${PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
 
-# Swagger/OpenAPI
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    operationsSorter: method
-
-# Logging configuration
-logging:
-  level:
-    root: INFO
-    com.sportskpi: DEBUG
-    org.springframework.web: INFO
-    #    org.hibernate: ERROR
-    org.hibernate:
-      SQL: DEBUG
-      type.descriptor.sql.BasicBinder: TRACE
-
----
-# JUnit environment profile
-spring:
-  config:
-    activate:
-      on-profile: junit
-
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    username: dev_user
-    password: P@ssw0rd1234
-    driver-class-name: org.h2.Driver
-
-  flyway:
-    enabled: true
-    create-schemas: true
-    schemas: flyway_history_schema, dbo
-    locations: classpath:db/migration/h2
-
-  jpa:
-    hibernate:
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-      ddl-auto: create-drop
-
-    show-sql: false
-    database-platform: org.hibernate.dialect.H2Dialect
-
-  h2:
-    console:
+# Add actuator endpoints for health checks
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    db:
       enabled: true
 
 ---
@@ -85,9 +33,9 @@ spring:
       on-profile: dev
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/PATIENT_TRIALS
-    username: dev_user
-    password: P@ssw0rd1234
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/PATIENT_TRIALS}
+    username: ${POSTGRES_USER:dev_user}
+    password: ${POSTGRES_PASSWORD:P@ssw0rd1234}
     driver-class-name: org.postgresql.Driver
 
   flyway:
@@ -100,12 +48,17 @@ spring:
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show-sql: false
+      ddl-auto: validate
+    show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+logging:
+  level:
+    com.tajorgensen: DEBUG
+    org.springframework.web: DEBUG
+
 ---
-# Production environment profile (for Vercel deployment)
-# Production environment profile (for Vercel deployment)
+# Production environment profile (for Render deployment)
 spring:
   config:
     activate:
@@ -114,6 +67,12 @@ spring:
   datasource:
     url: ${DATABASE_URL}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
 
   flyway:
     enabled: true
@@ -121,6 +80,7 @@ spring:
     schemas: flyway_history_schema, dbo
     locations: classpath:db/migration/postgresql
     baseline-on-migrate: true
+    validate-on-migrate: true
 
   jpa:
     hibernate:
@@ -130,5 +90,10 @@ spring:
     show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-server:
-  port: ${PORT:8080}
+# Production logging
+logging:
+  level:
+    root: INFO
+    com.tajorgensen: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
